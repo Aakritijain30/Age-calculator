@@ -2,7 +2,7 @@
 
 A clean, fast, free age calculator that tells you your exact age — down to years, months, and days — plus fun facts like total heartbeats lived, breaths taken, and how many days until your next birthday.
 
-**Live demo → [your-vercel-url.vercel.app](https://your-vercel-url.vercel.app)**
+**Live demo → (https://aakritijain30.github.io/Age-calculator/)**
 
 ---
 
