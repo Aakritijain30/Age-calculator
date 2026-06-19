@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Age Calculator — How Old Are You, Exactly?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d14;
+    --surface: #16161f;
+    --card: #1c1c2a;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.16);
+    --accent: #a78bfa;
+    --accent-dim: rgba(167,139,250,0.12);
+    --accent-glow: rgba(167,139,250,0.25);
+    --text: #f1f0f8;
+    --muted: #8b8a9e;
+    --success: #34d399;
+    --warn: #fbbf24;
+    --red: #f87171;
+    --sans: 'Inter', system-ui, sans-serif;
+    --serif: 'Playfair Display', Georgia, serif;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  /* — Header — */
+  header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    padding-top: 1rem;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(167,139,250,0.25);
+    border-radius: 100px;
+    padding: 4px 14px;
+    margin-bottom: 1rem;
+  }
+  header h1 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 0.6rem;
+    background: linear-gradient(135deg, #f1f0f8 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* — Main card — */
+  .card {
+    width: 100%;
+    max-width: 560px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    position: relative;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(167,139,250,0.3), transparent 60%);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+  }
+
+  /* — Form — */
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .date-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.4fr;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .field-wrap { display: flex; flex-direction: column; }
+  .field-wrap span {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+  input[type="number"], input[type="date"], select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 1rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus, select:focus { border-color: var(--accent); }
+  input.error { border-color: var(--red); }
+  select option { background: #1c1c2a; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 1.25rem 0;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* End-date row */
+  .end-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .toggle-label input[type="checkbox"] { display: none; }
+  .toggle-pill {
+    width: 36px;
+    height: 20px;
+    border-radius: 100px;
+    background: var(--border);
+    border: 1px solid var(--border-hover);
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-pill::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: left 0.2s, background 0.2s;
+  }
+  .toggle-label input:checked ~ .toggle-pill { background: var(--accent-dim); border-color: var(--accent); }
+  .toggle-label input:checked ~ .toggle-pill::after { left: 18px; background: var(--accent); }
+
+  #end-date-wrap {
+    flex: 1;
+    display: none;
+  }
+  #end-date-wrap.visible { display: block; }
+  #end-date {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 1rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  #end-date:focus { border-color: var(--accent); }
+
+  /* — Button — */
+  .btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--accent);
+    color: #0d0d14;
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.98); }
+
+  /* — Error — */
+  #error-msg {
+    font-size: 13px;
+    color: var(--red);
+    margin-top: 10px;
+    display: none;
+    text-align: center;
+  }
+
+  /* — Results — */
+  #result-section { margin-top: 2rem; display: none; }
+  .result-hero {
+    text-align: center;
+    padding: 1.75rem 1rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 1.25rem;
+  }
+  .age-num {
+    font-family: var(--serif);
+    font-size: clamp(3.5rem, 12vw, 5rem);
+    font-weight: 700;
+    line-height: 1;
+    background: linear-gradient(135deg, #f1f0f8 0%, #a78bfa 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .age-label {
+    font-size: 15px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .age-exact {
+    margin-top: 12px;
+    font-size: 1rem;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .stat-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-val {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .fun-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .fun-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+  .fun-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-bottom: 4px;
+  }
+  .fun-val {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .next-bday {
+    background: var(--accent-dim);
+    border: 1px solid rgba(167,139,250,0.25);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+  }
+  .next-bday svg { flex-shrink: 0; }
+  .next-bday strong { font-weight: 600; }
+
+  /* — Footer — */
+  footer {
+    margin-top: 3rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .author {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .author span { color: var(--text); font-weight: 500; }
+  .author a { color: var(--accent); text-decoration: none; }
+  .author a:hover { text-decoration: underline; }
+
+  .dh-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border-radius: 100px;
+    background: var(--accent);
+    color: #0d0d14;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: opacity 0.2s;
+  }
+  .dh-btn:hover { opacity: 0.85; }
+
+  @media (max-width: 480px) {
+    .date-row { grid-template-columns: 1fr 1fr; }
+    .fun-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Free Online Tool</div>
+  <h1>Age Calculator</h1>
+  <p>Find your exact age in years, months, days — and a few fun facts you never thought to calculate.</p>
+</header>
+
+<div class="card">
+  <label class="form-label">Your date of birth</label>
+  <div class="date-row">
+    <div class="field-wrap">
+      <span>Day</span>
+      <input type="number" id="dob-d" min="1" max="31" placeholder="DD" />
+    </div>
+    <div class="field-wrap">
+      <span>Month</span>
+      <input type="number" id="dob-m" min="1" max="12" placeholder="MM" />
+    </div>
+    <div class="field-wrap">
+      <span>Year</span>
+      <input type="number" id="dob-y" min="1900" max="2099" placeholder="YYYY" />
+    </div>
+  </div>
+
+  <div class="divider">Calculate age as of</div>
+
+  <div class="end-row">
+    <label class="toggle-label">
+      <input type="checkbox" id="custom-end" />
+      <span class="toggle-pill"></span>
+      Custom date
+    </label>
+    <div id="end-date-wrap">
+      <input type="date" id="end-date" />
+    </div>
+  </div>
+
+  <button class="btn" id="calc-btn">Calculate Age</button>
+  <p id="error-msg"></p>
+
+  <div id="result-section">
+    <div class="result-hero">
+      <div class="age-num" id="age-years">—</div>
+      <div class="age-label" id="age-label">years old</div>
+      <div class="age-exact" id="age-exact"></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-val" id="s-months">—</div>
+        <div class="stat-lbl">Total Months</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="s-weeks">—</div>
+        <div class="stat-lbl">Total Weeks</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="s-days">—</div>
+        <div class="stat-lbl">Total Days</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="s-hours">—</div>
+        <div class="stat-lbl">Total Hours</div>
+      </div>
+    </div>
+
+    <div class="fun-grid">
+      <div class="fun-box">
+        <div class="fun-lbl">Day you were born</div>
+        <div class="fun-val" id="f-weekday">—</div>
+      </div>
+      <div class="fun-box">
+        <div class="fun-lbl">Heartbeats lived</div>
+        <div class="fun-val" id="f-heartbeats">—</div>
+      </div>
+      <div class="fun-box">
+        <div class="fun-lbl">Breaths taken</div>
+        <div class="fun-val" id="f-breaths">—</div>
+      </div>
+      <div class="fun-box">
+        <div class="fun-lbl">Times slept (approx)</div>
+        <div class="fun-val" id="f-sleep">—</div>
+      </div>
+    </div>
+
+    <div class="next-bday" id="next-bday-wrap">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2a5 5 0 0 1 5 5v1H7V7a5 5 0 0 1 5-5Z"/>
+        <rect x="3" y="11" width="18" height="10" rx="2"/>
+        <path d="M12 15v3m-4 0h8"/>
+      </svg>
+      <div id="next-bday-text">—</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="author">
+    Built by <span>Aakriti Jain</span> &middot; <a href="mailto: aakritijainmvemjsun2007@gmail.com">aakritijainmvemjsun2007@gmail.com</a>
+  </div>
+  <a class="dh-btn" href="https://digitalheroesco.com" target="_blank" rel="noopener">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+      <path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2Z"/>
+    </svg>
+    Built for Digital Heroes
+  </a>
+</footer>
+
+<script>
+  const dobD = document.getElementById('dob-d');
+  const dobM = document.getElementById('dob-m');
+  const dobY = document.getElementById('dob-y');
+  const customEndCb = document.getElementById('custom-end');
+  const endDateWrap = document.getElementById('end-date-wrap');
+  const endDateInput = document.getElementById('end-date');
+  const calcBtn = document.getElementById('calc-btn');
+  const errorMsg = document.getElementById('error-msg');
+  const resultSection = document.getElementById('result-section');
+
+  const today = new Date();
+  endDateInput.value = today.toISOString().split('T')[0];
+
+  customEndCb.addEventListener('change', () => {
+    endDateWrap.classList.toggle('visible', customEndCb.checked);
+  });
+
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS_LONG = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function fmt(n) {
+    if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return Math.round(n).toLocaleString('en-IN');
+    return Math.round(n).toString();
+  }
+
+  function daysInMonth(y, m) {
+    return new Date(y, m, 0).getDate();
+  }
+
+  function calcAge() {
+    [dobD, dobM, dobY].forEach(el => el.classList.remove('error'));
+    errorMsg.style.display = 'none';
+
+    const d = parseInt(dobD.value), m = parseInt(dobM.value), y = parseInt(dobY.value);
+
+    if (!d || !m || !y || isNaN(d) || isNaN(m) || isNaN(y)) {
+      errorMsg.textContent = 'Please enter your full date of birth.';
+      errorMsg.style.display = 'block';
+      [dobD, dobM, dobY].forEach(el => { if (!el.value) el.classList.add('error'); });
+      return;
+    }
+    if (m < 1 || m > 12 || d < 1 || d > daysInMonth(y, m)) {
+      errorMsg.textContent = 'That date doesn\'t look right. Please check it.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    const birth = new Date(y, m - 1, d);
+    let end;
+    if (customEndCb.checked && endDateInput.value) {
+      end = new Date(endDateInput.value);
+    } else {
+      end = new Date();
+      end.setHours(0,0,0,0);
+    }
+
+    if (birth > end) {
+      errorMsg.textContent = 'Date of birth cannot be in the future.';
+      errorMsg.style.display = 'block';
+      return;
+    }
+
+    let yr = end.getFullYear() - birth.getFullYear();
+    let mo = end.getMonth() - birth.getMonth();
+    let da = end.getDate() - birth.getDate();
+
+    if (da < 0) {
+      mo--;
+      da += daysInMonth(end.getFullYear(), end.getMonth());
+    }
+    if (mo < 0) { yr--; mo += 12; }
+
+    const totalDays = Math.floor((end - birth) / 86400000);
+    const totalMonths = yr * 12 + mo;
+    const totalWeeks = Math.floor(totalDays / 7);
+    const totalHours = totalDays * 24;
+
+    document.getElementById('age-years').textContent = yr;
+    document.getElementById('age-label').textContent = yr === 1 ? 'year old' : 'years old';
+    document.getElementById('age-exact').textContent =
+      yr + ' years, ' + mo + ' month' + (mo !== 1 ? 's' : '') + ', ' + da + ' day' + (da !== 1 ? 's' : '');
+
+    document.getElementById('s-months').textContent = fmt(totalMonths);
+    document.getElementById('s-weeks').textContent = fmt(totalWeeks);
+    document.getElementById('s-days').textContent = fmt(totalDays);
+    document.getElementById('s-hours').textContent = fmt(totalHours);
+
+    document.getElementById('f-weekday').textContent = DAYS[birth.getDay()];
+    document.getElementById('f-heartbeats').textContent = fmt(totalDays * 24 * 60 * 70);
+    document.getElementById('f-breaths').textContent = fmt(totalDays * 24 * 60 * 16);
+    document.getElementById('f-sleep').textContent = fmt(totalDays) + ' nights';
+
+    const nextBday = new Date(end.getFullYear(), m - 1, d);
+    if (nextBday <= end) nextBday.setFullYear(end.getFullYear() + 1);
+    const daysToNext = Math.round((nextBday - end) / 86400000);
+    const nextAge = nextBday.getFullYear() - y;
+    const bdayEl = document.getElementById('next-bday-text');
+
+    if (!customEndCb.checked) {
+      if (daysToNext === 0) {
+        bdayEl.innerHTML = '🎂 <strong>Happy Birthday!</strong> You\'re turning ' + nextAge + ' today!';
+      } else {
+        bdayEl.innerHTML = 'Your next birthday (<strong>' + nextAge + 'th</strong>) is in <strong>' + daysToNext + ' day' + (daysToNext !== 1 ? 's' : '') + '</strong> — on ' + DAYS[nextBday.getDay()] + ', ' + MONTHS_LONG[nextBday.getMonth()] + ' ' + nextBday.getDate();
+      }
+      document.getElementById('next-bday-wrap').style.display = 'flex';
+    } else {
+      document.getElementById('next-bday-wrap').style.display = 'none';
+    }
+
+    resultSection.style.display = 'block';
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  calcBtn.addEventListener('click', calcAge);
+  [dobD, dobM, dobY].forEach(el => {
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') calcAge(); });
+  });
+</script>
+</body>
+</html>
